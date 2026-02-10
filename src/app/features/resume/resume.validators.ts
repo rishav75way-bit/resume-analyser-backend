@@ -9,9 +9,13 @@ export const analyzeResumeSchema = z.object({
 });
 
 export const aiResultValidationSchema = z.object({
+    resumeScore: z.number().min(0).max(10).optional().default(0),
+    scoreSummary: z.string().optional().default(''),
     strengths: z.array(z.string()),
     weaknesses: z.array(z.string()),
     improvementSuggestions: z.array(z.string()),
+    keywordsPresent: z.array(z.string()).optional().default([]),
+    keywordsMissing: z.array(z.string()).optional().default([]),
 });
 
 export type AnalyzeResumeInput = z.infer<typeof analyzeResumeSchema>;

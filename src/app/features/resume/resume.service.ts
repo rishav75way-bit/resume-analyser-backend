@@ -3,6 +3,9 @@ import { AnalyzeResumeInput } from './resume.validators';
 import { analyzeResumeWithAI } from '../../common/helpers/ai';
 import { extractTextFromPDF } from '../../common/helpers/pdfExtractor';
 import { Types } from 'mongoose';
+import { AppError } from '../../common/middlewares/errorHandler';
+import { StatusCodes } from 'http-status-codes';
+import { CONSTANTS } from '../../common/constants';
 
 export const analyzeResume = async (userId: string, input: AnalyzeResumeInput) => {
     const aiResult = await analyzeResumeWithAI(input.resumeText, input.jobDescription);
@@ -40,4 +43,18 @@ export const getAnalysisHistory = async (userId: string, page: number = 1, limit
             hasNextPage: page < Math.ceil(total / limit),
         },
     };
+};
+
+export const deleteAnalysis = async (userId: string, analysisId: string) => {
+    if (!Types.ObjectId.isValid(analysisId)) {
+        throw new AppError(CONSTANTS.MESSAGES.RESUME.ANALYSIS_NOT_FOUND, StatusCodes.NOT_FOUND);
+    }
+    const deleted = await ResumeAnalysis.findOneAndDelete({
+        _id: new Types.ObjectId(analysisId),
+        userId: new Types.ObjectId(userId),
+    }).exec();
+    if (!deleted) {
+        throw new AppError(CONSTANTS.MESSAGES.RESUME.ANALYSIS_NOT_FOUND, StatusCodes.NOT_FOUND);
+    }
+    return { deleted: true };
 };

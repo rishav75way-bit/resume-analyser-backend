@@ -12,6 +12,8 @@ export const MESSAGES = {
     },
     RESUME: {
         ANALYZE_SUCCESS: 'Resume analyzed successfully',
+        DELETE_SUCCESS: 'Analysis deleted successfully',
+        ANALYSIS_NOT_FOUND: 'Analysis not found',
         RATE_LIMIT_AI: 'AI analysis limit reached for this hour, please try again later',
         RESUME_ANALYSIS_FAILED: 'Failed to analyze resume with AI',
         PDF_EXTRACTION_FAILED: 'Failed to extract text from PDF. Please ensure the PDF contains readable text.',

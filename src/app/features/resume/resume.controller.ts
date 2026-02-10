@@ -63,3 +63,17 @@ export const getHistory = asyncHandler(async (req: AuthRequest, res: Response) =
         pagination: result.pagination,
     });
 });
+
+export const deleteAnalysis = asyncHandler(async (req: AuthRequest, res: Response) => {
+    if (!req.user) {
+        throw new AppError(CONSTANTS.MESSAGES.AUTH.USER_NOT_FOUND, StatusCodes.UNAUTHORIZED);
+    }
+    const rawId = req.params.id;
+    const analysisId = typeof rawId === 'string' ? rawId : Array.isArray(rawId) ? rawId[0] ?? '' : '';
+    const result = await resumeService.deleteAnalysis(req.user._id.toString(), analysisId);
+    res.status(StatusCodes.OK).json({
+        success: true,
+        message: CONSTANTS.MESSAGES.RESUME.DELETE_SUCCESS,
+        data: result,
+    });
+});

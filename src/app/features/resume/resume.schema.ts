@@ -5,9 +5,13 @@ export interface IResumeAnalysis extends Document {
     userId: Types.ObjectId;
     resumeText: string;
     aiResult: {
+        resumeScore?: number;
+        scoreSummary?: string;
         strengths: string[];
         weaknesses: string[];
         improvementSuggestions: string[];
+        keywordsPresent?: string[];
+        keywordsMissing?: string[];
     };
     createdAt: Date;
 }
@@ -25,9 +29,13 @@ const resumeAnalysisSchema: Schema<IResumeAnalysis> = new Schema<IResumeAnalysis
             required: true,
         },
         aiResult: {
+            resumeScore: { type: Number },
+            scoreSummary: { type: String },
             strengths: { type: [String], required: true },
             weaknesses: { type: [String], required: true },
             improvementSuggestions: { type: [String], required: true },
+            keywordsPresent: { type: [String] },
+            keywordsMissing: { type: [String] },
         },
     },
     {
