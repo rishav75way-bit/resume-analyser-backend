@@ -13,6 +13,7 @@ resumeRouter.use(protect);
 resumeRouter.post('/analyze', aiRateLimiter, validate(analyzeResumeSchema), resumeController.analyzeResume);
 resumeRouter.post('/analyze/upload', aiRateLimiter, uploadPDF.single('file'), resumeController.analyzeResumeFromPDF);
 resumeRouter.get('/history', aiRateLimiter, resumeController.getHistory);
+resumeRouter.get('/analytics', aiRateLimiter, resumeController.getAnalytics);
 resumeRouter.delete('/history/:id', aiRateLimiter, resumeController.deleteAnalysis);
 
 export { resumeRouter };

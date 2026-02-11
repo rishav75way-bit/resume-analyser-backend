@@ -77,3 +77,16 @@ export const deleteAnalysis = asyncHandler(async (req: AuthRequest, res: Respons
         data: result,
     });
 });
+
+export const getAnalytics = asyncHandler(async (req: AuthRequest, res: Response) => {
+    if (!req.user) {
+        throw new AppError(CONSTANTS.MESSAGES.AUTH.USER_NOT_FOUND, StatusCodes.UNAUTHORIZED);
+    }
+
+    const result = await resumeService.getAnalytics(req.user._id.toString());
+
+    res.status(StatusCodes.OK).json({
+        success: true,
+        data: result,
+    });
+});
