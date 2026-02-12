@@ -81,9 +81,26 @@ export const getAnalytics = async (userId: string) => {
     const keywordUsage: Record<string, number> = {};
     analyses.forEach((analysis) => {
         const keywords = analysis.aiResult.keywordsPresent || [];
-        keywords.forEach((keyword) => {
-            keywordUsage[keyword] = (keywordUsage[keyword] || 0) + 1;
-        });
+        if (keywords.length > 0) {
+            keywords.forEach((keyword) => {
+                keywordUsage[keyword] = (keywordUsage[keyword] || 0) + 1;
+            });
+        } else {
+            const resumeText = analysis.resumeText.toLowerCase();
+            const commonTechKeywords = [
+                'javascript', 'typescript', 'python', 'java', 'react', 'node', 'angular', 'vue',
+                'sql', 'mongodb', 'postgresql', 'mysql', 'aws', 'azure', 'docker', 'kubernetes',
+                'git', 'github', 'agile', 'scrum', 'ci/cd', 'rest', 'api', 'graphql',
+                'html', 'css', 'sass', 'tailwind', 'bootstrap', 'redux', 'express',
+                'machine learning', 'ai', 'data science', 'analytics', 'testing', 'jest',
+                'microservices', 'serverless', 'terraform', 'jenkins', 'linux', 'unix'
+            ];
+            commonTechKeywords.forEach((keyword) => {
+                if (resumeText.includes(keyword.toLowerCase())) {
+                    keywordUsage[keyword] = (keywordUsage[keyword] || 0) + 1;
+                }
+            });
+        }
     });
 
     const keywordTrends = Object.entries(keywordUsage)

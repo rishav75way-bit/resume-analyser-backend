@@ -5,6 +5,7 @@ export const CONSTANTS = {
     COLLECTIONS: {
         USERS: 'Users',
         RESUME_ANALYSIS: 'ResumeAnalysis',
+        COVER_LETTER: 'CoverLetter',
     },
     MAX_FILE_SIZE: 5242880,
     JWT_EXPIRES_IN: '7d',

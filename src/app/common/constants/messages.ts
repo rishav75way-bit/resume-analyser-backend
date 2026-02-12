@@ -21,6 +21,15 @@ export const MESSAGES = {
         FILE_TOO_LARGE: 'File size exceeds the maximum allowed size of 5MB.',
         NO_FILE_UPLOADED: 'No file uploaded.',
     },
+    COVER_LETTER: {
+        GENERATION_SUCCESS: 'Cover letter generated successfully',
+        GENERATION_FAILED: 'Failed to generate cover letter',
+        RESUME_REQUIRED: 'Resume text is required to generate cover letter',
+        JOB_DESCRIPTION_REQUIRED: 'Job description is required to generate cover letter',
+        DELETE_SUCCESS: 'Cover letter deleted successfully',
+        NOT_FOUND: 'Cover letter not found',
+        FETCH_HISTORY_FAILED: 'Failed to fetch cover letter history',
+    },
     COMMON: {
         ROUTE_NOT_FOUND: 'Route not found',
         SERVER_RUNNING: 'AI Powered Resume Analyser API is running',
