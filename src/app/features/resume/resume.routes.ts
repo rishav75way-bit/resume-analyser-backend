@@ -4,7 +4,7 @@ import { protect } from '../../common/middlewares/authMiddleware';
 import { aiRateLimiter } from '../../common/middlewares/rateLimiter';
 import { validate } from '../../common/middlewares/validate';
 import { uploadPDF } from '../../common/middlewares/uploadMiddleware';
-import { analyzeResumeSchema } from './resume.validators';
+import { analyzeResumeSchema, resumeChatSchema } from './resume.validators';
 
 const resumeRouter = Router();
 
@@ -13,7 +13,9 @@ resumeRouter.use(protect);
 resumeRouter.post('/analyze', aiRateLimiter, validate(analyzeResumeSchema), resumeController.analyzeResume);
 resumeRouter.post('/analyze/upload', aiRateLimiter, uploadPDF.single('file'), resumeController.analyzeResumeFromPDF);
 resumeRouter.get('/history', aiRateLimiter, resumeController.getHistory);
+resumeRouter.get('/history/:id', aiRateLimiter, resumeController.getAnalysisById);
 resumeRouter.get('/analytics', aiRateLimiter, resumeController.getAnalytics);
 resumeRouter.delete('/history/:id', aiRateLimiter, resumeController.deleteAnalysis);
+resumeRouter.post('/chat', aiRateLimiter, validate(resumeChatSchema), resumeController.chatResume);
 
 export { resumeRouter };

@@ -1,6 +1,6 @@
 import { ResumeAnalysis } from './resume.schema';
-import { AnalyzeResumeInput } from './resume.validators';
-import { analyzeResumeWithAI } from '../../common/helpers/ai';
+import { AnalyzeResumeInput, ResumeChatInput } from './resume.validators';
+import { analyzeResumeWithAI, getGrammarAndToneFeedback, chatAboutResume } from '../../common/helpers/ai';
 import { extractTextFromPDF } from '../../common/helpers/pdfExtractor';
 import { analyzeResumeChecks } from '../../common/helpers/resumeChecker';
 import { Types } from 'mongoose';
@@ -9,8 +9,11 @@ import { StatusCodes } from 'http-status-codes';
 import { CONSTANTS } from '../../common/constants';
 
 export const analyzeResume = async (userId: string, input: AnalyzeResumeInput) => {
-    const aiResult = await analyzeResumeWithAI(input.resumeText, input.jobDescription);
-    const checks = analyzeResumeChecks(input.resumeText);
+    const [aiResult, checks, grammarAndTone] = await Promise.all([
+        analyzeResumeWithAI(input.resumeText, input.jobDescription),
+        Promise.resolve(analyzeResumeChecks(input.resumeText)),
+        getGrammarAndToneFeedback(input.resumeText),
+    ]);
 
     const analysis = await ResumeAnalysis.create({
         userId: new Types.ObjectId(userId),
@@ -20,6 +23,7 @@ export const analyzeResume = async (userId: string, input: AnalyzeResumeInput) =
             lengthCheck: checks.length,
             formattingIssues: checks.formattingIssues,
             atsWarnings: checks.atsWarnings,
+            ...(grammarAndTone && { grammarAndTone }),
         },
     });
 
@@ -50,6 +54,20 @@ export const getAnalysisHistory = async (userId: string, page: number = 1, limit
             hasNextPage: page < Math.ceil(total / limit),
         },
     };
+};
+
+export const getAnalysisById = async (userId: string, analysisId: string) => {
+    if (!Types.ObjectId.isValid(analysisId)) {
+        throw new AppError(CONSTANTS.MESSAGES.RESUME.ANALYSIS_NOT_FOUND, StatusCodes.NOT_FOUND);
+    }
+    const analysis = await ResumeAnalysis.findOne({
+        _id: new Types.ObjectId(analysisId),
+        userId: new Types.ObjectId(userId),
+    }).exec();
+    if (!analysis) {
+        throw new AppError(CONSTANTS.MESSAGES.RESUME.ANALYSIS_NOT_FOUND, StatusCodes.NOT_FOUND);
+    }
+    return analysis;
 };
 
 export const deleteAnalysis = async (userId: string, analysisId: string) => {
@@ -134,4 +152,26 @@ export const getAnalytics = async (userId: string) => {
             totalKeywords,
         },
     };
+};
+
+export const chatWithResume = async (resumeText: string, question: string): Promise<{ answer: string; updatedResume?: string }> => {
+    const answer = await chatAboutResume(resumeText, question);
+    
+    const isUpdateRequest = question.toLowerCase().includes('implement') || 
+                           question.toLowerCase().includes('update') || 
+                           question.toLowerCase().includes('apply') ||
+                           question.toLowerCase().includes('change') ||
+                           question.toLowerCase().includes('modify');
+    
+    if (isUpdateRequest) {
+        const updatePrompt = `Based on the user's request, provide the complete updated resume text. Original resume: ${resumeText}. User request: ${question}. Return ONLY the complete updated resume text, nothing else.`;
+        try {
+            const updatedResume = await chatAboutResume(resumeText, updatePrompt);
+            return { answer, updatedResume: updatedResume.trim() };
+        } catch {
+            return { answer };
+        }
+    }
+    
+    return { answer };
 };

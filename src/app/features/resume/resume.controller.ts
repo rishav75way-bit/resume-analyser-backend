@@ -5,6 +5,7 @@ import * as resumeService from './resume.service';
 import { CONSTANTS } from '../../common/constants';
 import { AuthRequest } from '../../common/middlewares/authMiddleware';
 import { AppError } from '../../common/middlewares/errorHandler';
+import { resumeChatSchema } from './resume.validators';
 
 export const analyzeResume = asyncHandler(async (req: AuthRequest, res: Response) => {
     if (!req.user) {
@@ -64,6 +65,19 @@ export const getHistory = asyncHandler(async (req: AuthRequest, res: Response) =
     });
 });
 
+export const getAnalysisById = asyncHandler(async (req: AuthRequest, res: Response) => {
+    if (!req.user) {
+        throw new AppError(CONSTANTS.MESSAGES.AUTH.USER_NOT_FOUND, StatusCodes.UNAUTHORIZED);
+    }
+    const rawId = req.params.id;
+    const analysisId = typeof rawId === 'string' ? rawId : Array.isArray(rawId) ? rawId[0] ?? '' : '';
+    const result = await resumeService.getAnalysisById(req.user._id.toString(), analysisId);
+    res.status(StatusCodes.OK).json({
+        success: true,
+        data: result,
+    });
+});
+
 export const deleteAnalysis = asyncHandler(async (req: AuthRequest, res: Response) => {
     if (!req.user) {
         throw new AppError(CONSTANTS.MESSAGES.AUTH.USER_NOT_FOUND, StatusCodes.UNAUTHORIZED);
@@ -87,6 +101,20 @@ export const getAnalytics = asyncHandler(async (req: AuthRequest, res: Response)
 
     res.status(StatusCodes.OK).json({
         success: true,
+        data: result,
+    });
+});
+
+export const chatResume = asyncHandler(async (req: AuthRequest, res: Response) => {
+    if (!req.user) {
+        throw new AppError(CONSTANTS.MESSAGES.AUTH.USER_NOT_FOUND, StatusCodes.UNAUTHORIZED);
+    }
+
+    const result = await resumeService.chatWithResume(req.body.resumeText, req.body.question);
+
+    res.status(StatusCodes.OK).json({
+        success: true,
+        message: 'Chat response generated successfully',
         data: result,
     });
 });

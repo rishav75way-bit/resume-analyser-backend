@@ -28,6 +28,19 @@ const atsWarningSchema = z.object({
     recommendation: z.string(),
 });
 
+const grammarToneItemSchema = z.object({
+    excerpt: z.string(),
+    message: z.string(),
+    suggestion: z.string(),
+});
+
+export const grammarAndToneValidationSchema = z.object({
+    spelling: z.array(grammarToneItemSchema).default([]),
+    grammar: z.array(grammarToneItemSchema).default([]),
+    tone: z.array(grammarToneItemSchema).default([]),
+    summary: z.string().optional(),
+});
+
 export const aiResultValidationSchema = z.object({
     resumeScore: z.number().min(0).max(10).optional().default(0),
     scoreSummary: z.string().optional().default(''),
@@ -41,5 +54,12 @@ export const aiResultValidationSchema = z.object({
     atsWarnings: z.array(atsWarningSchema).optional().default([]),
 });
 
+export const resumeChatSchema = z.object({
+    resumeText: z.string().min(50, 'Resume text must be at least 50 characters long'),
+    question: z.string().min(10, 'Question must be at least 10 characters long'),
+});
+
 export type AnalyzeResumeInput = z.infer<typeof analyzeResumeSchema>;
 export type AIResult = z.infer<typeof aiResultValidationSchema>;
+export type GrammarAndToneFeedback = z.infer<typeof grammarAndToneValidationSchema>;
+export type ResumeChatInput = z.infer<typeof resumeChatSchema>;

@@ -1,7 +1,12 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { env } from '../config/env.config';
 import { CONSTANTS } from '../constants';
-import { AIResult, aiResultValidationSchema } from '../../features/resume/resume.validators';
+import {
+    AIResult,
+    aiResultValidationSchema,
+    GrammarAndToneFeedback,
+    grammarAndToneValidationSchema,
+} from '../../features/resume/resume.validators';
 import { AppError } from '../middlewares/errorHandler';
 import { StatusCodes } from 'http-status-codes';
 
@@ -46,4 +51,52 @@ export const analyzeResumeWithAI = async (resumeText: string, jobDescription?: s
     }
 
     throw new AppError(CONSTANTS.MESSAGES.RESUME.RESUME_ANALYSIS_FAILED, StatusCodes.INTERNAL_SERVER_ERROR);
+};
+
+export const getGrammarAndToneFeedback = async (resumeText: string): Promise<GrammarAndToneFeedback | null> => {
+    const modelNames = ['models/gemini-2.5-flash', 'models/gemini-pro-latest', 'models/gemini-2.5-pro', 'models/gemini-2.0-flash'];
+    const prompt = CONSTANTS.PROMPTS.GRAMMAR_AND_TONE.replace('{resumeText}', resumeText);
+    if (!prompt) return null;
+
+    for (const modelName of modelNames) {
+        try {
+            const model = genAI.getGenerativeModel({ model: modelName });
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text();
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) continue;
+            const json: unknown = JSON.parse(jsonMatch[0]);
+            const validation = grammarAndToneValidationSchema.safeParse(json);
+            if (validation.success) return validation.data;
+        } catch {
+            continue;
+        }
+    }
+    return null;
+};
+
+export const chatAboutResume = async (resumeText: string, question: string): Promise<string> => {
+    const modelNames = ['models/gemini-2.5-flash', 'models/gemini-pro-latest', 'models/gemini-2.5-pro', 'models/gemini-2.0-flash'];
+    const prompt = CONSTANTS.PROMPTS.RESUME_CHAT?.replace('{resumeText}', resumeText).replace('{question}', question);
+    if (!prompt) {
+        throw new AppError('Chat prompt not configured', StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+
+    for (const modelName of modelNames) {
+        try {
+            const model = genAI.getGenerativeModel({ model: modelName });
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            return response.text();
+        } catch (error) {
+            if (modelNames.indexOf(modelName) === modelNames.length - 1) {
+                const message = error instanceof Error ? error.message : 'Failed to get chat response';
+                throw new AppError(message, StatusCodes.INTERNAL_SERVER_ERROR);
+            }
+            continue;
+        }
+    }
+
+    throw new AppError('Failed to get chat response', StatusCodes.INTERNAL_SERVER_ERROR);
 };

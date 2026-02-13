@@ -29,6 +29,12 @@ export interface IResumeAnalysis extends Document {
             severity: 'low' | 'medium' | 'high';
             recommendation: string;
         }>;
+        grammarAndTone?: {
+            spelling: Array<{ excerpt: string; message: string; suggestion: string }>;
+            grammar: Array<{ excerpt: string; message: string; suggestion: string }>;
+            tone: Array<{ excerpt: string; message: string; suggestion: string }>;
+            summary?: string;
+        };
     };
     createdAt: Date;
 }
@@ -70,6 +76,12 @@ const resumeAnalysisSchema: Schema<IResumeAnalysis> = new Schema<IResumeAnalysis
                 severity: { type: String, enum: ['low', 'medium', 'high'] },
                 recommendation: { type: String },
             }],
+            grammarAndTone: {
+                spelling: [{ excerpt: String, message: String, suggestion: String }],
+                grammar: [{ excerpt: String, message: String, suggestion: String }],
+                tone: [{ excerpt: String, message: String, suggestion: String }],
+                summary: { type: String },
+            },
         },
     },
     {
